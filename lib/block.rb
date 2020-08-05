@@ -134,13 +134,38 @@ class Block
   # Return the result of adding the other Block (or Blocks) to self.
 
   def add (other)
-    # Implement.
+    if overlaps?(other)
+      [Block.new([top, other.top].min, [bottom, other.bottom].max)]
+    else
+      [other, self]
+    end
   end
   
   # Return the result of subtracting the other Block (or Blocks) from self.
 
   def subtract (other)
-    # Implement.
+    other = [other] unless other.class == Array
+    result = [self]
+    other.each do |o|
+      pre = result.pop
+      result += Block.sub_two(pre, o) unless pre.nil?
+    end
+    result
+  end
+
+  def self.sub_two (a, b)
+    return [] if (a.top >= b.top && a.bottom <= b.bottom)
+    if a.surrounds?(b)
+      a.split(b)
+    elsif a.intersects_bottom?(b)
+      [Block.new(b.bottom, a.bottom)]
+    elsif a.intersects_top?(b)
+      [Block.new(a.top, b.top)]
+    elsif b.bottom <= a.top || b.top >= a.bottom
+      [a]
+    else
+      []
+    end
   end
 
   alias :- :subtract
@@ -160,6 +185,7 @@ class Block
   end
 
   def merge (others)
-    # Implement.
+    combined_block = others.push(self)
+    Block.merge(combined_block)
   end
 end
